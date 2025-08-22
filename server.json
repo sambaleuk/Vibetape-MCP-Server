@@ -1,0 +1,152 @@
+{
+  "name": "io.github.sambaleuk/vibetape-mcp",
+  "displayName": "VibeTape - Hybrid Active Memory",
+  "description": "Record the vibe of your build! Captures key development moments (wins, fails, decisions), creates AI-powered RETEX cards, and enables instant recall of past solutions. Perfect for solo developers and teams.",
+  "version": "0.2.1",
+  "homepage": "https://github.com/sambaleuk/Vibetape-MCP-Server",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sambaleuk/Vibetape-MCP-Server.git"
+  },
+  "license": "MIT",
+  "keywords": ["mcp", "ai", "memory", "development", "team", "retex", "knowledge"],
+  "categories": ["development", "productivity", "collaboration"],
+  "author": {
+    "name": "sambaleuk",
+    "url": "https://github.com/sambaleuk"
+  },
+  "runtime": {
+    "node": {
+      "command": "node",
+      "args": ["dist/server.js"],
+      "runtimeHint": "node"
+    }
+  },
+  "package": {
+    "registry": "github",
+    "name": "sambaleuk/Vibetape-MCP-Server",
+    "version": "0.2.1"
+  },
+  "environmentVariables": [
+    {
+      "name": "OPENAI_API_KEY",
+      "description": "OpenAI API key for semantic search and RETEX generation (optional - falls back to TF-IDF)",
+      "isRequired": false,
+      "isSecret": true
+    },
+    {
+      "name": "VIBETAPE_HOME",
+      "description": "Custom storage directory for VibeTape data (default: ~/.vibetape)",
+      "isRequired": false,
+      "isSecret": false
+    },
+    {
+      "name": "VIBETAPE_TEAM_DIR",
+      "description": "Team collaboration directory for shared moments (optional)",
+      "isRequired": false,
+      "isSecret": false
+    }
+  ],
+  "tools": [
+    {
+      "name": "mark_moment",
+      "description": "Capture a key build moment with safe context snapshot"
+    },
+    {
+      "name": "search_moments",
+      "description": "Find similar moments using semantic search"
+    },
+    {
+      "name": "search_moments_advanced", 
+      "description": "Advanced search with filters (tags, dates, regex, semantic)"
+    },
+    {
+      "name": "list_moments",
+      "description": "List recent captured moments"
+    },
+    {
+      "name": "link_moments",
+      "description": "Create relationships between moments (causes, solves, relates)"
+    },
+    {
+      "name": "comment_moment",
+      "description": "Add collaborative comments to moments"
+    },
+    {
+      "name": "make_retex",
+      "description": "Generate AI-powered prescriptive RETEX cards from moments"
+    },
+    {
+      "name": "stats_overview",
+      "description": "Development pattern analytics and statistics"
+    },
+    {
+      "name": "recurrent_patterns",
+      "description": "Detect recurring patterns in development issues"
+    },
+    {
+      "name": "export_timeline",
+      "description": "Export day timeline as Markdown"
+    },
+    {
+      "name": "export_json",
+      "description": "Export complete state as JSON"
+    },
+    {
+      "name": "export_md", 
+      "description": "Export complete state as Markdown"
+    }
+  ],
+  "resources": [
+    {
+      "name": "moment",
+      "description": "Individual captured moments with full context"
+    },
+    {
+      "name": "timeline",
+      "description": "Daily development timeline in Markdown"
+    },
+    {
+      "name": "retex",
+      "description": "AI-generated prescriptive cards from experiences"
+    },
+    {
+      "name": "graph",
+      "description": "Relationship graphs between moments"
+    },
+    {
+      "name": "export",
+      "description": "Full data exports in JSON or Markdown format"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "induce-retex",
+      "description": "Template for generating RETEX cards from moment data"
+    },
+    {
+      "name": "commit-msg",
+      "description": "Helper for creating conventional commit messages"
+    }
+  ],
+  "security": {
+    "readOnlyAccess": true,
+    "restrictedWrites": ["~/.vibetape/", "${VIBETAPE_HOME}", "${VIBETAPE_TEAM_DIR}"],
+    "noShellExecution": true,
+    "safeGitOperations": true
+  },
+  "installation": {
+    "instructions": [
+      "1. Clone the repository: git clone https://github.com/sambaleuk/Vibetape-MCP-Server.git",
+      "2. Install dependencies: npm install",
+      "3. Build the project: npm run build", 
+      "4. Configure Claude Desktop with absolute path to dist/server.js",
+      "5. Optional: Set OPENAI_API_KEY for enhanced features"
+    ],
+    "requirements": [
+      "Node.js 18+",
+      "npm or yarn",
+      "Git (for context capture)"
+    ]
+  }
+}
