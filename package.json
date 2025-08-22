@@ -1,25 +1,30 @@
 {
   "name": "vibetape-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "license": "MIT",
   "scripts": {
     "dev": "node --loader ts-node/esm src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "npm run build && node scripts/test-atomic-writes.js",
+    "check": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.3",
+    "ajv": "^8.17.1",
     "dotenv": "^16.4.5",
     "fs-extra": "^11.2.0",
     "openai": "^4.57.0",
     "simple-git": "^3.27.0",
-    "zod": "^3.23.8",
-    "ulid": "^2.3.0"
+    "ulid": "^2.3.0",
+    "write-file-atomic": "^6.0.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.14.0",
+    "@types/write-file-atomic": "^4.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   }

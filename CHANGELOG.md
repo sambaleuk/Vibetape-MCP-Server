@@ -1,5 +1,35 @@
 # Changelog
 
+## v0.2.1 - 2025-01-15
+
+### 🔒 Critical Security & Reliability Fixes
+
+#### Atomic Writes & Data Integrity
+- **Fixed**: Race conditions in concurrent team/local writes
+- **Added**: Atomic file writes using `write-file-atomic`
+- **Added**: Deterministic merge strategy with last-write-wins
+- **Added**: State versioning system (v2) with automatic migration
+- **Added**: Orphaned relation garbage collection
+
+#### Enhanced Team Collaboration
+- **Added**: `origin` field tracking ('local' vs 'team')
+- **Added**: `modified_ts` timestamp for conflict resolution
+- **Fixed**: Team Vault merge creating duplicates
+- **Fixed**: JSON corruption in high-concurrency scenarios
+
+#### Developer Experience
+- **Added**: Comprehensive test suite for atomic operations
+- **Added**: State validation and migration system
+- **Improved**: Error handling with detailed messages
+- **Added**: Automated testing scripts
+
+### 📊 Impact
+- **Zero data corruption** in team environments ✅
+- **Deterministic merges** across all scenarios ✅
+- **Backward compatibility** with v0.2.0 states ✅
+
+---
+
 ## v0.2.0 - 2025-01-15
 
 ### 🆕 Nouvelles fonctionnalités

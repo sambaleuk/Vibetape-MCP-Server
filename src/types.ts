@@ -34,6 +34,8 @@ export type Moment = {
   embedding?: number[]; // optional
   relations?: Relation[]; // NEW: relations to other moments
   comments?: Comment[]; // NEW: comments on this moment
+  origin?: 'local' | 'team'; // NEW: track data origin
+  modified_ts?: number; // NEW: for conflict resolution
 };
 
 export type RetexCard = {

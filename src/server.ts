@@ -13,7 +13,7 @@ import type { RelationKind } from './types.js';
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
-const server = new Server({ name: 'vibetape', version: '0.2.0' }, {
+const server = new Server({ name: 'vibetape', version: '0.2.1' }, {
   capabilities: {
     resources: {},
     tools: {},
@@ -643,4 +643,4 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
 // ---------- Boot ----------
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('🎞️  VibeTape MCP v0.2 ready (stdio)');
+console.error('🎞️  VibeTape MCP v0.2.1 ready (stdio)');
