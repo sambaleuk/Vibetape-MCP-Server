@@ -32,12 +32,13 @@ fi
 VERSION=$(node -p "require('./package.json').version")
 echo -e "${BLUE}📦 Current version: ${VERSION}${NC}"
 
-# Security check - ensure no sensitive files
+# Security check - ensure no sensitive files in git
 echo -e "${BLUE}🔒 Running security checks...${NC}"
 
-if [ -f ".env" ]; then
-    echo -e "${RED}❌ Error: .env file found! This contains sensitive data.${NC}"
-    echo "Please remove .env file before release (it should be in .gitignore)"
+# Check if .env would be committed (not just if it exists)
+if git ls-files --error-unmatch .env 2>/dev/null; then
+    echo -e "${RED}❌ Error: .env file is tracked by git! This contains sensitive data.${NC}"
+    echo "Please remove .env file from git tracking"
     exit 1
 fi
 
