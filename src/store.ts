@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import writeFileAtomic from 'write-file-atomic';
 import path from 'path';
 import os from 'os';
-import { Moment, RetexCard, Relation, Comment } from './types.js';
+import { Moment, RetexCard, Relation, Comment, HandoffRecord } from './types.js';
 
 const HOME = process.env.VIBETAPE_HOME?.replace('~', os.homedir()) || path.join(os.homedir(), '.vibetape');
 const FILE = path.join(HOME, 'state.json');
@@ -12,12 +12,13 @@ const TEAM_FILE = TEAM_DIR ? path.join(TEAM_DIR, 'team_state.json') : undefined;
 type State = { 
   version: number; // State schema version
   moments: Moment[]; 
-  retex: RetexCard[] 
+  retex: RetexCard[];
+  handoffs?: HandoffRecord[]; // NEW: context handoffs
 };
 
 async function loadFile(file: string): Promise<State> {
   await fs.ensureDir(path.dirname(file));
-  if (!(await fs.pathExists(file))) return { version: 2, moments: [], retex: [] };
+  if (!(await fs.pathExists(file))) return { version: 2, moments: [], retex: [], handoffs: [] };
   const state = await fs.readJSON(file);
   
   // Migrate legacy state (v1 -> v2)
@@ -42,7 +43,8 @@ function mergeStates(local: State, team: State): State {
   const merged: State = {
     version: Math.max(local.version || 2, team.version || 2),
     moments: [],
-    retex: []
+    retex: [],
+    handoffs: []
   };
 
   // Merge moments with last-write-wins based on modified_ts
@@ -71,6 +73,13 @@ function mergeStates(local: State, team: State): State {
     retexMap.set(r.id, r);
   }
   merged.retex = Array.from(retexMap.values());
+  
+  // Merge handoffs (simple deduplication by ID)
+  const handoffMap = new Map<string, HandoffRecord>();
+  for (const h of [...(team.handoffs || []), ...(local.handoffs || [])]) {
+    handoffMap.set(h.id, h);
+  }
+  merged.handoffs = Array.from(handoffMap.values());
   
   // Garbage collect orphaned relations
   const validMomentIds = new Set(merged.moments.map(m => m.id));
@@ -179,5 +188,31 @@ export const Store = {
   
   async getState() { 
     return load(); 
+  },
+
+  // NEW: Handoff management
+  async addHandoff(h: HandoffRecord) {
+    const s = await load();
+    s.handoffs = s.handoffs || [];
+    s.handoffs.unshift(h);
+    await save(s);
+    return h;
+  },
+
+  async listHandoffs(limit = 20) {
+    const s = await load();
+    return (s.handoffs || []).slice(0, limit);
+  },
+
+  async getHandoff(id: string) {
+    const s = await load();
+    const h = (s.handoffs || []).find(x => x.id === id);
+    if (!h) throw new Error('handoff not found');
+    return h;
+  },
+
+  // NEW: Direct state save (for handoff.ts)
+  async save(state: State) {
+    await save(state);
   }
 };

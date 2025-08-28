@@ -1,5 +1,47 @@
 # Changelog
 
+## v0.3.0 - 2025-01-27
+
+### 🚀 Revolutionary Context Handoff & Denoising
+
+#### Context Handoff System
+- **NEW**: `generate_context_handoff` tool - Creates compact transition cards (350 tokens)
+- **NEW**: Smart ranking algorithm (0.5×recency + 0.3×type + 0.2×boost)
+- **NEW**: Structured handoff format (État/Stack/Décisions/Résolu/Next Steps)
+- **NEW**: `handoff://{id}` resources for cross-session continuity
+- **NEW**: Token-aware content budgeting with tiktoken integration
+
+#### Context-Aware Suggestions  
+- **NEW**: `suggest_transition_card` tool - Proactive handoff suggestions
+- **NEW**: Automatic detection of context window saturation (< 1000 tokens)
+- **NEW**: Smart budget allocation based on remaining tokens
+- **NEW**: Session continuity across IDE restarts
+
+#### Intelligent Denoising
+- **NEW**: `sweep_noise` tool - Filters trivial and duplicate moments
+- **NEW**: `signal_score` field (0-1) for moment quality scoring
+- **NEW**: `is_noise` and `merged_into` fields for cleanup tracking
+- **NEW**: Cooldown violation detection (spam prevention)
+- **NEW**: Similarity-based duplicate merging (cosine + Jaccard)
+
+#### Architecture Enhancements
+- **Added**: `@dqbd/tiktoken` for precise GPT-4o token counting
+- **Added**: `HandoffRecord` type with full handoff metadata
+- **Extended**: Moment type with denoising fields
+- **Enhanced**: Store with handoff management and merge support
+- **Updated**: Server to v0.3.0 with new tools and resources
+
+#### Technical Improvements
+- **Performance**: In-memory ranking for 200+ moments
+- **Reliability**: Fallback token estimation when tiktoken fails
+- **Flexibility**: Configurable similarity thresholds and time windows
+- **Compatibility**: Maintains full backward compatibility with v0.2.x
+
+### 🎯 Impact
+This release transforms VibeTape from a passive journal into a proactive context management system. The handoff feature solves the critical problem of context loss between sessions, while denoising ensures signal clarity in high-activity development environments.
+
+---
+
 ## v0.2.1 - 2025-01-15
 
 ### 🔒 Critical Security & Reliability Fixes

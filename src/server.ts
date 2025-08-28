@@ -10,10 +10,13 @@ import { embed, cos } from './embed.js';
 import OpenAI from 'openai';
 import { INDUCE_RETEX } from './prompts.js';
 import type { RelationKind } from './types.js';
+import { generateContextHandoff } from './handoff.js';
+import { suggestTransitionCard } from './suggest.js';
+import { sweepNoise } from './denoise.js';
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
-const server = new Server({ name: 'vibetape', version: '0.2.1' }, {
+const server = new Server({ name: 'vibetape', version: '0.3.0' }, {
   capabilities: {
     resources: {},
     tools: {},
@@ -47,6 +50,12 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => ({
       name: 'Moment subgraph',
       description: 'Relations for a moment',
       mimeType: 'application/json'
+    },
+    {
+      uri: 'handoff://{id}',
+      name: 'Context Handoff',
+      description: 'Compact transition card for session continuity',
+      mimeType: 'text/markdown'
     },
     {
       uri: 'export://json?{q}',
@@ -109,6 +118,41 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
         uri: uri,
         text: JSON.stringify(r, null, 2),
         mimeType: 'application/json'
+      }]
+    };
+  }
+
+  if (uri.startsWith('handoff://')) {
+    const id = uri.replace('handoff://', '');
+    const handoff = await Store.getHandoff(id);
+    
+    // Generate the markdown content from the handoff record
+    const content = [
+      '# Transition – VibeTape',
+      '',
+      'ÉTAT ACTUEL',
+      handoff.current_state || '- (à préciser)',
+      '',
+      'STACK',
+      handoff.stack || '- (à préciser)',
+      '',
+      'DÉCISIONS CLÉS',
+      ...handoff.decisions.map(d => `- ${d}`),
+      '',
+      'PROBLÈMES RÉSOLUS',
+      ...handoff.solved.map(s => `- ${s}`),
+      '',
+      'NEXT STEPS (48h)',
+      ...handoff.next_steps.map(n => `- ${n}`),
+      '',
+      'Refs: ' + handoff.refs.join(' ')
+    ].join('\n');
+    
+    return {
+      contents: [{
+        uri: uri,
+        text: content,
+        mimeType: 'text/markdown'
       }]
     };
   }
@@ -308,6 +352,46 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         type: 'object',
         properties: {
           q: { type: 'string', description: 'Query parameter' }
+        }
+      }
+    },
+    {
+      name: 'generate_context_handoff',
+      description: 'Create a compact transition card (state/stack/decisions/solved/next) under a token budget',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          budgetTokens: { type: 'number', minimum: 120, maximum: 2000, description: 'Token budget for the handoff (default: 350)' },
+          includeCurrentState: { type: 'boolean', description: 'Include current state section (default: true)' },
+          includeKeyDecisions: { type: 'boolean', description: 'Include key decisions section (default: true)' },
+          includeNextSteps: { type: 'boolean', description: 'Include next steps section (default: true)' },
+          includeSolved: { type: 'boolean', description: 'Include problems solved section (default: true)' },
+          sessionId: { type: 'string', description: 'Optional session identifier' }
+        }
+      }
+    },
+    {
+      name: 'suggest_transition_card',
+      description: 'Suggest generating a transition card when context is near capacity',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          remainingTokens: { type: 'number', minimum: 0, description: 'Number of tokens remaining in context' },
+          sessionId: { type: 'string', description: 'Optional session identifier' },
+          threshold: { type: 'number', minimum: 100, maximum: 5000, description: 'Token threshold for suggestion (default: 1000)' }
+        },
+        required: ['remainingTokens']
+      }
+    },
+    {
+      name: 'sweep_noise',
+      description: 'Denoise auto-marked moments: trivial, duplicates, cooldown; updates signal_score',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          windowDays: { type: 'number', minimum: 1, maximum: 90, description: 'Days to look back for denoising (default: 7)' },
+          similarityThreshold: { type: 'number', minimum: 0, maximum: 1, description: 'Similarity threshold for duplicates (default: 0.8)' },
+          cooldownMinutes: { type: 'number', minimum: 1, maximum: 1440, description: 'Cooldown period in minutes (default: 10)' }
         }
       }
     }
@@ -567,6 +651,73 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           resource: { uri: `export://md?${encodeURIComponent(q)}`, text: 'export.md' }
         }]
       };
+    }
+
+    case 'generate_context_handoff': {
+      try {
+        const result = await generateContextHandoff(args as any);
+        return {
+          content: [
+            { type: 'text', text: `✅ Context handoff generated (${result.record.budget_tokens} tokens)` },
+            { type: 'resource', resource: { uri: `handoff://${result.id}`, text: 'Transition Card' } },
+            { type: 'text', text: result.text }
+          ]
+        };
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `❌ Failed to generate handoff: ${error instanceof Error ? error.message : String(error)}` }],
+          isError: true
+        };
+      }
+    }
+
+    case 'suggest_transition_card': {
+      try {
+        const result = await suggestTransitionCard(args as any);
+        if (!result.suggested) {
+          return { content: [{ type: 'text', text: '✅ Context healthy, no handoff needed' }] };
+        }
+        
+        const content: any[] = [
+          { type: 'text', text: result.message || 'Context handoff suggested' }
+        ];
+        
+        if (result.handoffId) {
+          content.push({ type: 'resource', resource: { uri: `handoff://${result.handoffId}`, text: 'Transition Card' } });
+        }
+        
+        if (result.preview) {
+          content.push({ type: 'text', text: `Preview:\n${result.preview}` });
+        }
+        
+        return { content };
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `❌ Failed to suggest handoff: ${error instanceof Error ? error.message : String(error)}` }],
+          isError: true
+        };
+      }
+    }
+
+    case 'sweep_noise': {
+      try {
+        const result = await sweepNoise(args as any);
+        return {
+          content: [{
+            type: 'text',
+            text: `🧹 Noise sweep completed:
+- Processed: ${result.processed} moments
+- Marked as noise: ${result.markedAsNoise}
+- Merged duplicates: ${result.merged}
+- Total updates: ${result.updated}`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `❌ Failed to sweep noise: ${error instanceof Error ? error.message : String(error)}` }],
+          isError: true
+        };
+      }
     }
     
     default:

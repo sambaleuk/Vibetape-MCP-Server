@@ -36,6 +36,10 @@ export type Moment = {
   comments?: Comment[]; // NEW: comments on this moment
   origin?: 'local' | 'team'; // NEW: track data origin
   modified_ts?: number; // NEW: for conflict resolution
+  // Context Handoff & Denoising fields
+  signal_score?: number; // NEW: quality score 0-1
+  is_noise?: boolean; // NEW: mark as noise/trivial
+  merged_into?: string; // NEW: if merged into another moment
 };
 
 export type RetexCard = {
@@ -47,4 +51,18 @@ export type RetexCard = {
   bullets: [string, string, string];
   dont?: string;
   tags: string[];
+};
+
+// Context Handoff types
+export type HandoffRecord = {
+  id: string;
+  ts: number;
+  session_id?: string;
+  budget_tokens: number;
+  current_state: string;
+  stack: string;
+  decisions: string[];
+  solved: string[];
+  next_steps: string[];
+  refs: string[];
 };

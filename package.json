@@ -1,6 +1,6 @@
 {
   "name": "vibetape-mcp",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -11,6 +11,7 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
+    "@dqbd/tiktoken": "^1.0.17",
     "@modelcontextprotocol/sdk": "^1.17.3",
     "ajv": "^8.17.1",
     "dotenv": "^16.4.5",
