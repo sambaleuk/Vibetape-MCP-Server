@@ -1,5 +1,73 @@
 # Changelog
 
+## v0.4.0 - 2025-01-09
+
+### 🤖 Multi-Agent Traceability & Intelligent Context Curation
+
+This release transforms VibeTape into a full **multi-agent orchestration platform** with LangGraph-compatible handoffs, RankRAG-style context scoring, and comprehensive agent analytics.
+
+#### Multi-Agent Management
+- **NEW**: `register_actor` tool — Register humans or AI agents with capabilities
+- **NEW**: `get_actor` / `list_actors` tools — Query actor information
+- **NEW**: `get_actor_stats` tool — Performance analytics (success rate, activity, top tags)
+- **NEW**: `Actor` type with id, type, name, description, capabilities, metadata
+- **NEW**: State migration v2→v3 with actors and tasks arrays
+
+#### Task Lifecycle Management
+- **NEW**: `create_task` tool — Create tasks with assignment and priority
+- **NEW**: `update_task` tool — Update status, outcome, and assignment
+- **NEW**: `list_tasks` tool — Filter by status, assignee, creator
+- **NEW**: `get_task_context` tool — Get all moments related to a task
+- **NEW**: `Task` type with full lifecycle tracking (pending → in_progress → completed/failed/handed_off)
+- **NEW**: `link_moment_to_task` — Bidirectional moment-task linking
+- **NEW**: `supersede_moment` — Temporal tracking (Zep-style valid_from/valid_until)
+
+#### Context Intelligence (RankRAG-style)
+- **NEW**: `context_relevance_score` tool — Calculate weighted relevance scores
+  - Factors: tag overlap, recency, type weight, signal score, task relation, semantic similarity
+- **NEW**: `evaluate_context_window` tool — Optimize context selection within token budget
+  - Strategies: `relevance`, `recency`, `balanced`
+  - Automatic RETEX inclusion option
+- **NEW**: `predict_agent_needs` tool — Anticipate what context an agent will need
+  - Domain detection (deployment, debugging, security, testing, architecture, feature)
+  - Recommended moments, RETEX cards, and risk warnings
+
+#### Agent-to-Agent Handoffs
+- **NEW**: `get_retex_for_task` tool — Find relevant RETEX cards for a task
+  - Tag overlap scoring and moment relation analysis
+- **NEW**: `create_handoff_for_agent` tool — LangGraph-compatible handoff payloads
+  - `AgentHandoffPayload` type with full context, refs, and recommendations
+  - Includes recent failures, key decisions, and risk warnings
+  - Direct integration with LangGraph Command pattern
+
+#### Enhanced Moment Types
+- **Extended**: Moment type with `actor_id`, `task_id` fields
+- **Extended**: Moment type with temporal tracking (`valid_from`, `valid_until`, `superseded_by`)
+- **Extended**: Moment type with `context_relevance` cache for task-based curation
+- **Extended**: HandoffRecord with `from_actor`, `to_actor`, `task_id`, `recommended_retex`, `risk_warnings`
+
+#### New Resources
+- **NEW**: `actor://{id}` — Actor details with computed stats (JSON)
+- **NEW**: `task://{id}` — Task details with related moments (JSON)
+
+#### Technical Improvements
+- **Store**: Added actor CRUD operations and stats computation
+- **Store**: Added task CRUD operations with filtering
+- **Store**: Added moment-task linking and supersession
+- **Types**: Added `ActorType`, `ActorStats`, `TaskStatus`, `TaskOutcome`, `ContextRelevance`
+- **Types**: Added `AgentHandoffPayload` for framework interoperability
+- **Migration**: Automatic v2→v3 state migration with system actor creation
+
+### 📊 Statistics
+- **Tools**: 13 → 18 (+38%)
+- **Resources**: 7 → 9 (+29%)
+- **Types**: 8 → 15 (+87%)
+
+### 🎯 Impact
+This release positions VibeTape as a core infrastructure component for multi-agent AI systems. The RankRAG-style context curation ensures agents receive optimal context within token budgets, while the handoff system enables seamless work transfer between specialized agents.
+
+---
+
 ## v0.3.0 - 2025-01-27
 
 ### 🚀 Revolutionary Context Handoff & Denoising
@@ -11,7 +79,7 @@
 - **NEW**: `handoff://{id}` resources for cross-session continuity
 - **NEW**: Token-aware content budgeting with tiktoken integration
 
-#### Context-Aware Suggestions  
+#### Context-Aware Suggestions
 - **NEW**: `suggest_transition_card` tool - Proactive handoff suggestions
 - **NEW**: Automatic detection of context window saturation (< 1000 tokens)
 - **NEW**: Smart budget allocation based on remaining tokens
@@ -129,7 +197,7 @@ This release transforms VibeTape from a passive journal into a proactive context
 
 #### Outils MCP
 - `mark_moment` : Capturer un moment clé
-- `list_moments` : Lister les moments récents  
+- `list_moments` : Lister les moments récents
 - `search_moments` : Recherche sémantique
 - `make_retex` : Générer une carte RETEX
 - `export_timeline` : Timeline Markdown
