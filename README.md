@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/sambaleuk-vibetape-mcp-server-badge.png)](https://mseep.ai/app/sambaleuk-vibetape-mcp-server)
+
 # 🎞️ VibeTape MCP Server
 
 > **Record the vibe of your build** — A revolutionary Model Context Protocol (MCP) server that captures key development moments, enables **multi-agent traceability**, provides **intelligent context curation**, and facilitates **seamless agent-to-agent handoffs**.
